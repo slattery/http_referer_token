@@ -1,0 +1,113 @@
+<?php
+
+/**
+ * @file
+ * Contains http_referer_token.module.
+ */
+
+use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function http_referer_token_help($route_name, RouteMatchInterface $route_match) {
+  if ($route_name == 'help.page.http_referer_token') {
+    // Main module help for the http_referer_token module.
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('provides tokens with HTTP Referer string and parsed elements') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function http_referer_token_token_info() {
+  $info = [];
+  $info['types']['http_referer'] = [
+    'name' => t('Internal HTTP Referer'), 
+    'description' => t('String and parsed elements')
+  ];
+   $info['tokens']['http_referer']['ext'] = [
+    'name' => t('External flag'),
+    'description' => t('boolean from urlparser, true if external'),
+  ];
+    $info['tokens']['http_referer']['raw'] = [
+    'name' => t('Whole referer string'),
+    'description' => t('Whole referer string'),
+  ];
+  $info['tokens']['http_referer']['path'] = [
+    'name' => t('Path string from parser'),
+    'description' => t('path only if internal, host and protocol if external'),
+  ];
+  $info['tokens']['http_referer']['query'] = [
+    'name' => t('Query string value'),
+    'description' => t('The value of a specific query string field of the current page.'),
+    'dynamic' => TRUE,
+  ];
+  $info['tokens']['http_referer']['fragment'] = [
+    'name' => t('Anchor Fragment'),
+    'description' => t('what comes after the octothorpe'),
+  ];
+  return $info;
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function http_referer_token_tokens($type, array $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+  $replacements = [];
+
+
+  if ($type == 'http_referer') {
+    $referer = \Drupal::request()->server->get('HTTP_REFERER');
+
+    if ($referer != ''){
+      $is_external = \Drupal\Component\Utility\UrlHelper::isExternal($referer);
+      $parsed_ref  = \Drupal\Component\Utility\UrlHelper::parse($referer);
+
+      foreach ($tokens as $name => $original) {
+        switch ($name) {
+          case 'ext':
+            $rawstring = $is_external;
+            if ($rawstring && $rawstring !='') {
+              $replacements[$original] = $rawstring;
+            }
+            break;
+          case 'raw':
+            $rawstring = $referer;
+            if ($rawstring && $rawstring !='') {
+              $replacements[$original] = $rawstring;
+            }
+            break;         
+          case 'path':
+            $pathstring = $parsed_ref['path'];
+            if ($pathstring && $pathstring !='') {
+              $replacements[$original] = $pathstring;
+            }
+            break;
+
+          case 'fragment':
+            $fragmentstring = $parsed_ref['fragment'];
+            if (fragmentstring && $fragmentstring !='') {
+              $replacements[$original] = $fragmentstring;
+            }
+            break;
+        }
+      }
+      // [http_referer:query] dynamic tokens.
+      // you have to know them up front to get them, naturally.
+      if ($query_tokens = \Drupal::token()->findWithPrefix($tokens, 'query')) {
+        foreach ($query_tokens as $name => $original) {
+          if ($parsed_ref['query'] && $parsed_ref['query'][$name]) {
+            $value = $parsed_ref['query'][$name];
+            $replacements[$original] = $value;
+          }
+        }
+      }
+    }
+  }
+  return $replacements;
+}
