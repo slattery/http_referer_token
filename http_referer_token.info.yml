@@ -1,8 +1,10 @@
-name: HTTP Referer Token
-type: module
-description: "provides token with HTTP Referer string and parsed elements"
-package: token
+---
 core: 8.x
-core_version_requirement: ^8 || ^9 || ^10
+core_version_requirement: '^8 || ^9 || ^10'
 dependencies:
   - token:token
+description: 'provides token with HTTP Referer string and parsed elements'
+name: 'HTTP Referer Token'
+package: token
+type: module
+version: v1.4.5
