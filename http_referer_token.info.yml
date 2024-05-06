@@ -3,6 +3,6 @@ type: module
 description: "provides token with HTTP Referer string and parsed elements"
 package: token
 core: 8.x
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^8 || ^9 || ^10
 dependencies:
   - token:token

@@ -1,5 +1,5 @@
 {
-  "name": "slattery/current_page_http_referer_token",
+  "name": "slattery/http_referer_token",
   "description": "provides token with HTTP Referer string for the [current-page] token",
   "type": "drupal-custom-module",
   "license": "GPL-2.0-or-later"
